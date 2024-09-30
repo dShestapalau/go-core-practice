@@ -1,10 +1,10 @@
 package prices
 
 import (
-	"bufio"
 	"fmt"
-	"os"
-	"strconv"
+
+	"example.com/practice-project/conversion"
+	"example.com/practice-project/filemanager"
 )
 
 var FILENAME = "prices.txt"
@@ -16,43 +16,19 @@ type TaxIncludedPriceJob struct {
 }
 
 func (job *TaxIncludedPriceJob) LoadData() {
-	file, err := os.Open(FILENAME)
+	lines, err := filemanager.ReadLines(FILENAME)
 
 	if err != nil {
-		fmt.Printf("Could not open file %v\n", FILENAME)
 		fmt.Println(err)
 		return
 	}
 
-	scanner := bufio.NewScanner(file)
-
-	var lines []string
-	for scanner.Scan() {
-		lines = append(lines, scanner.Text())
-	}
-
-	err = scanner.Err()
+	prices, err := conversion.StringToFloat(lines)
 
 	if err != nil {
-		fmt.Println("Failed to read content from file.")
+		fmt.Println("Failed to convert values.")
 		fmt.Println(err)
-		file.Close()
 		return
-	}
-
-	prices := make([]float64, len(lines))
-
-	for lineIndex, line := range lines {
-		floatPrice, err := strconv.ParseFloat(line, 64)
-
-		if err != nil {
-			fmt.Println("Failed to convert string to float.")
-			fmt.Println(err)
-			file.Close()
-			return
-		}
-
-		prices[lineIndex] = floatPrice
 	}
 
 	job.InputPrices = prices
