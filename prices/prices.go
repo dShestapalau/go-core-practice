@@ -4,24 +4,24 @@ import (
 	"fmt"
 
 	"example.com/practice-project/conversion"
-	"example.com/practice-project/filemanager"
+	"example.com/practice-project/iomanager"
 )
 
 var FILENAME = "prices.txt"
 
 type TaxIncludedPriceJob struct {
-	IOManager         filemanager.FileManager `json:"-"`
-	TaxRate           float64                 `json:"taxRate"`
-	InputPrices       []float64               `json:"inputPrices"`
-	TaxIncludedPrices map[string]string       `json:"taxIncludedPrices"`
+	IOManager         iomanager.IOManager `json:"-"`
+	TaxRate           float64             `json:"taxRate"`
+	InputPrices       []float64           `json:"inputPrices"`
+	TaxIncludedPrices map[string]string   `json:"taxIncludedPrices"`
 }
 
-func (job *TaxIncludedPriceJob) LoadData() {
+func (job *TaxIncludedPriceJob) LoadData() error {
 	lines, err := job.IOManager.ReadLines()
 
 	if err != nil {
 		fmt.Println(err)
-		return
+		return err
 	}
 
 	prices, err := conversion.StringToFloat(lines)
@@ -29,14 +29,18 @@ func (job *TaxIncludedPriceJob) LoadData() {
 	if err != nil {
 		fmt.Println("Failed to convert values.")
 		fmt.Println(err)
-		return
+		return err
 	}
 
 	job.InputPrices = prices
 }
 
-func (job TaxIncludedPriceJob) Process() {
-	job.LoadData()
+func (job TaxIncludedPriceJob) Process() error {
+	err := job.LoadData()
+
+	if err != nil {
+		return err
+	}
 
 	result := make(map[string]string)
 
@@ -46,10 +50,10 @@ func (job TaxIncludedPriceJob) Process() {
 	}
 
 	job.TaxIncludedPrices = result
-	job.IOManager.WriteJSON(job)
+	return job.IOManager.WriteJSON(job)
 }
 
-func New(fm filemanager.FileManager, taxRate float64) *TaxIncludedPriceJob {
+func New(fm iomanager.IOManager, taxRate float64) *TaxIncludedPriceJob {
 	return &TaxIncludedPriceJob{
 		IOManager:   fm,
 		InputPrices: []float64{10, 20, 30},
